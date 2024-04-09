@@ -18,6 +18,18 @@ y_train = EMNIST["dataset"][0][0][0][0][0][1]
 x_test = EMNIST['dataset'][0][0][1][0][0][0].astype("float64")
 y_test = EMNIST['dataset'][0][0][1][0][0][1]
 
+
+def monlabel(x):
+    label='0'
+    if x<10:
+        label=str(x)
+    elif x<36:
+        label=chr(x+87)
+    elif x<63:
+        label=chr(x+61).upper()
+
+    return label
+
 # Filter out lowercase letters (class labels 1 to 26)
 #lowercase_indices_train = np.where((y_train >= 1) & (y_train <= 62))[0]
 #lowercase_indices_test = np.where((y_test >= 1) & (y_test <= 62))[0]
@@ -29,15 +41,13 @@ y_test = EMNIST['dataset'][0][0][1][0][0][1]
 #y_test = y_test[lowercase_indices_test]
 
 # Scaling data
-x_train = (x_train - np.mean(x_train)) / np.std(x_train)
-x_test = (x_test - np.mean(x_train)) / np.std(x_train)
+#x_train = (x_train - np.mean(x_train)) / np.std(x_train)
+#x_test = (x_test - np.mean(x_train)) / np.std(x_train)
 
 nb_classes = 62  # Number of classes
 
 y_train = keras.utils.to_categorical(y_train, nb_classes)
 y_test = keras.utils.to_categorical(y_test, nb_classes)
-
-print(y_test[1][0])
 
 x_train_scaled = x_train.reshape(-1, 28, 28, 1)
 x_test_scaled = x_test.reshape(-1, 28, 28, 1)
@@ -55,7 +65,7 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.float32)
 
 start = time.time() # Measuring computation time
 
-num_epochs = 7
+num_epochs = 10
 batch_size = 200
 
 # Model of CNN
@@ -151,12 +161,11 @@ print('Elapsed time:', end - start)
 fig, axes = plt.subplots(2, 5, figsize=(12, 6))
 for i, ax in enumerate(axes.flat):
     # Label associé
-#    true_label = y_test[i][0].astype(int)  # Convertir le label en lettre minuscule
-    true_label = np.argmax(y_test[i].astype(int))
+    true_label = monlabel(np.argmax(y_test[i].astype(int)))
     #ax.set_title(f'True: {true_label}')
 
     # Prédiction faite par le modèle
-    predicted_label = np.argmax(outputs.detach().numpy()[i]) # Convertir la prédiction en lettre minuscule
+    predicted_label = monlabel(np.argmax(outputs.detach().numpy()[i])) # Convertir la prédiction en lettre minuscule
 
     # Affichage de l'image
     ax.imshow(x_test[i].reshape(28, 28), cmap='gray' if true_label == predicted_label else 'Oranges')
